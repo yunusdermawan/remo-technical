@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+  # ======================
+  # Backend (Laravel API)
+  # ======================
+  backend:
+    build:
+      context: ./backend
+    container_name: laravel-backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "
+      php artisan key:generate &&
+      php artisan migrate --force &&
+      php artisan serve --host=0.0.0.0 --port=8000
+      "
+
+  # ======================
+  # Queue Worker
+  # ======================
+  queue-worker:
+    build:
+      context: ./backend
+    container_name: laravel-queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    depends_on:
+      - backend
+      - redis
+    command: php artisan queue:work --tries=3 --timeout=90
+
+  # ======================
+  # WebSocket (Laravel Reverb)
+  # ======================
+  reverb:
+    build:
+      context: ./backend
+    container_name: laravel-reverb
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+      - redis
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+
+  # ======================
+  # Frontend (Next.js)
+  # ======================
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nextjs-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    command: npm run dev
+
+  # ======================
+  # Database
+  # ======================
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: task_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # ======================
+  # Redis
+  # ======================
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+volumes:
+  mysql_data:
