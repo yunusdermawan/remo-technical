@@ -5,6 +5,7 @@ services:
   # Backend (Laravel API)
   # ======================
   backend:
+    # restart: "no"
     build:
       context: ./backend
     image: remohires-backend
@@ -18,19 +19,14 @@ services:
     depends_on:
       - db
       - redis
-    command: >
-      sh -c "
-      php artisan key:generate &&
-      php artisan migrate --force &&
-      php artisan serve --host=0.0.0.0 --port=8000
-      "
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    # command: sh
+
 
   # ======================
   # Queue Worker
   # ======================
   queue-worker:
-    build:
-      context: ./backend
     image: remohires-backend
     container_name: laravel-queue
     restart: unless-stopped
@@ -40,14 +36,13 @@ services:
     depends_on:
       - backend
       - redis
-    command: php artisan queue:work --tries=3 --timeout=90
+    command: php artisan queue:work
+
 
   # ======================
   # WebSocket (Laravel Reverb)
   # ======================
   reverb:
-    build:
-      context: ./backend
     image: remohires-backend
     container_name: laravel-reverb
     restart: unless-stopped
@@ -60,6 +55,7 @@ services:
       - backend
       - redis
     command: php artisan reverb:start --host=0.0.0.0 --port=8080
+
 
   # ======================
   # Frontend (Next.js)
