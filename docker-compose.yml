@@ -7,6 +7,7 @@ services:
   backend:
     build:
       context: ./backend
+    image: remohires-backend
     container_name: laravel-backend
     restart: unless-stopped
     working_dir: /var/www
@@ -30,6 +31,7 @@ services:
   queue-worker:
     build:
       context: ./backend
+    image: remohires-backend
     container_name: laravel-queue
     restart: unless-stopped
     working_dir: /var/www
@@ -46,6 +48,7 @@ services:
   reverb:
     build:
       context: ./backend
+    image: remohires-backend
     container_name: laravel-reverb
     restart: unless-stopped
     working_dir: /var/www
@@ -65,12 +68,10 @@ services:
     build:
       context: ./frontend
     container_name: nextjs-frontend
-    restart: unless-stopped
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
-    command: npm run dev
+
+
 
   # ======================
   # Database

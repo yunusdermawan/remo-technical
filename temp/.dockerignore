@@ -1,0 +1,12 @@
+.git
+.gitignore
+node_modules
+vendor
+.env
+.env.*
+storage/logs
+storage/framework
+tests
+coverage
+.idea
+.vscode
