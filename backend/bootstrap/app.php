@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,12 +14,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->api([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            'throttle:api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        $middleware->api(prepend: [
+        EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        $middleware->alias([
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+            'auth:sanctum' => \Laravel\Sanctum\Http\Middleware\Authenticate::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->shouldRenderJsonWhen(function ($request, $e) {
+            if ($request->is('api/*')) {
+                return true;
+            }
+
+            return $request->expectsJson();
+        });
     })->create();

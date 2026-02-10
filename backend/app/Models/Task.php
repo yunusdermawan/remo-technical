@@ -1,10 +1,19 @@
 <?php
 
-namespace App\Enums;
+namespace App\Models;
 
-enum TaskStatus: string
+use App\Enums\TaskStatus;
+use Illuminate\Database\Eloquent\Model;
+
+class Task extends Model
 {
-    case PENDING = 'pending';
-    case IN_PROGRESS = 'in_progress';
-    case DONE = 'done';
+    protected $fillable = [
+        'title',
+        'description',
+        'status',
+    ];
+
+    protected $casts = [
+        'status' => TaskStatus::class,
+    ];
 }
