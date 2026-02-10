@@ -1,8 +1,9 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
+
 RUN ls -lah /app && cat /app/package.json
 
 RUN npm install
@@ -10,4 +11,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 3000
-CMD ["npm","run","dev"]
+
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
